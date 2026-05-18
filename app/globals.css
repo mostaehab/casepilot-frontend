@@ -1,0 +1,489 @@
+@import "tailwindcss";
+
+/* ------------------------------------------------------------------
+   Tokens — OKLCH only. See DESIGN.md for the full system.
+
+   Two-zone composition:
+   • Chrome (sidebar, primary buttons, brand)         → navy ink, hue 250
+   • Workspace (page bg, cards, tables, content)      → warm cream, hue 75
+   • Single committed accent (hero CTA, brand pop)    → warm amber, hue 50
+   ------------------------------------------------------------------ */
+
+:root {
+  /* Page neutrals — warm cream, hue 75, low chroma */
+  --page:         oklch(98%   0.010 75);
+  --page-2:       oklch(95.5% 0.014 75);
+  --page-3:       oklch(92%   0.016 75);
+  --page-mute:    oklch(74%   0.020 75);   /* muted text on dark navy surfaces */
+  --page-faint:   oklch(60%   0.018 75);   /* faint text on dark navy surfaces */
+  --rule:         oklch(87%   0.016 75);
+  --rule-strong:  oklch(76%   0.014 75);
+
+  /* Ink — navy-tinted text scale, hue 250 */
+  --ink-faint:    oklch(56%   0.030 250);
+  --ink-mute:     oklch(40%   0.040 250);
+  --ink:          oklch(22%   0.050 250);
+  --ink-strong:   oklch(14%   0.045 250);
+
+  /* Navy — chrome surface family, hue 250 */
+  --navy:         oklch(24%   0.070 250);   /* primary button, lifted active surface */
+  --navy-hover:   oklch(20%   0.070 250);
+  --navy-deep:    oklch(16%   0.060 250);   /* sidebar bg, deepest chrome */
+  --navy-soft:    oklch(94%   0.020 250);   /* light navy tint on page */
+  --navy-faint:   oklch(97%   0.012 250);   /* subtle wash */
+
+  /* Accent — warm amber, hue 50, single committed brand pop */
+  --accent:       oklch(68%   0.170 50);
+  --accent-hover: oklch(62%   0.180 50);
+  --accent-soft:  oklch(94%   0.035 50);
+  --accent-faint: oklch(98%   0.015 50);
+  --accent-ink:   oklch(42%   0.160 50);
+
+  /* Functional state — used for state, never decoration */
+  --ok:           oklch(48%   0.100 150);
+  --ok-soft:      oklch(95%   0.025 150);
+  --warn:         oklch(72%   0.130 88);    /* yellow-amber, distinct from brand accent */
+  --warn-soft:    oklch(95%   0.040 88);
+  --alarm:        oklch(54%   0.200 25);    /* clear red, distinct from amber */
+  --alarm-soft:   oklch(95%   0.030 25);
+
+  /* ----------------------------------------------------------------
+     Legacy aliases — every component imports these names. Repointed,
+     not renamed, so the redesign rolls out without a sweep.
+     ---------------------------------------------------------------- */
+
+  /* Old paper/claret family → repointed at the new tokens. */
+  --paper:        var(--page);
+  --paper-2:      var(--page-2);
+  --paper-3:      var(--page-3);
+  --claret:       var(--accent);
+  --claret-hover: var(--accent-hover);
+  --claret-soft:  var(--accent-soft);
+  --claret-faint: var(--accent-faint);
+  --claret-ink:   var(--accent-ink);
+
+  /* Component-level aliases. Primary now means navy, not ink-strong. */
+  --background:           var(--page);
+  --foreground:           var(--ink);
+  --primary:              var(--navy);
+  --primary-hover:        var(--navy-hover);
+  --primary-muted:        var(--ink-mute);
+  --surface:              var(--page-2);
+  --surface-hover:        var(--page-3);
+  --border:               var(--rule);
+  --border-light:         var(--page-3);
+
+  --accent-light:         var(--accent-soft);
+  --accent-muted:         var(--ink-faint);
+
+  /* Rainbow accents collapsed to neutral / functional. The Badge
+     variants survive, but `purple` and friends no longer carry a hue. */
+  --accent-purple:        var(--ink-mute);
+  --accent-green:         var(--ok);
+  --accent-red:           var(--alarm);
+  --accent-amber:         var(--warn);
+
+  /* Nav / sidebar — dark sidebar, light top nav. */
+  --nav:                  var(--page-2);
+  --sidebar:              var(--navy-deep);
+  --sidebar-fg:           var(--page);
+  --sidebar-mute:         var(--page-mute);
+  --sidebar-rule:         oklch(28% 0.04 250);   /* dividers inside dark sidebar */
+  --sidebar-active:       var(--navy);
+  --sidebar-active-text:  var(--page);
+  --sidebar-active-rail:  var(--accent);
+  --content-bg:           var(--page);
+
+  /* Elevation — used sparingly. Cards do not shadow at rest. */
+  --shadow-paper: 0 1px 0 0 oklch(0% 0 0 / 0.05);
+  --shadow-pop:   0 1px 2px oklch(0% 0 0 / 0.05),
+                  0 8px 24px oklch(0% 0 0 / 0.10);
+
+  /* Radius */
+  --radius-sm: 4px;
+  --radius:    6px;
+  --radius-md: 8px;
+  --radius-lg: 10px;
+}
+
+/* ------------------------------------------------------------------
+   Tailwind v4 theme bridge.
+   ------------------------------------------------------------------ */
+
+@theme inline {
+  --color-background:          var(--background);
+  --color-foreground:          var(--foreground);
+  --color-primary:             var(--primary);
+  --color-primary-hover:       var(--primary-hover);
+  --color-primary-muted:       var(--primary-muted);
+  --color-surface:             var(--surface);
+  --color-surface-hover:       var(--surface-hover);
+  --color-border:              var(--border);
+  --color-border-light:        var(--border-light);
+  --color-accent:              var(--accent);
+  --color-accent-hover:        var(--accent-hover);
+  --color-accent-light:        var(--accent-light);
+  --color-accent-muted:        var(--accent-muted);
+  --color-accent-purple:       var(--accent-purple);
+  --color-accent-green:        var(--accent-green);
+  --color-accent-red:          var(--accent-red);
+  --color-accent-amber:        var(--accent-amber);
+  --color-nav:                 var(--nav);
+  --color-sidebar:             var(--sidebar);
+  --color-sidebar-fg:          var(--sidebar-fg);
+  --color-sidebar-mute:        var(--sidebar-mute);
+  --color-sidebar-rule:        var(--sidebar-rule);
+  --color-sidebar-active:      var(--sidebar-active);
+  --color-sidebar-active-text: var(--sidebar-active-text);
+  --color-sidebar-active-rail: var(--sidebar-active-rail);
+  --color-content-bg:          var(--content-bg);
+
+  /* New canonical names */
+  --color-page:                var(--page);
+  --color-page-2:              var(--page-2);
+  --color-page-3:              var(--page-3);
+  --color-page-mute:           var(--page-mute);
+  --color-page-faint:          var(--page-faint);
+  --color-navy:                var(--navy);
+  --color-navy-hover:          var(--navy-hover);
+  --color-navy-deep:           var(--navy-deep);
+  --color-navy-soft:           var(--navy-soft);
+  --color-navy-faint:          var(--navy-faint);
+  --color-accent-soft:         var(--accent-soft);
+  --color-accent-faint:        var(--accent-faint);
+  --color-accent-ink:          var(--accent-ink);
+
+  /* Legacy paper/claret class names — kept for incremental rollout */
+  --color-paper:               var(--paper);
+  --color-paper-2:             var(--paper-2);
+  --color-paper-3:             var(--paper-3);
+  --color-rule:                var(--rule);
+  --color-rule-strong:         var(--rule-strong);
+  --color-ink-faint:           var(--ink-faint);
+  --color-ink-mute:            var(--ink-mute);
+  --color-ink:                 var(--ink);
+  --color-ink-strong:          var(--ink-strong);
+  --color-claret:              var(--claret);
+  --color-claret-hover:        var(--claret-hover);
+  --color-claret-soft:         var(--claret-soft);
+  --color-claret-faint:        var(--claret-faint);
+  --color-claret-ink:          var(--claret-ink);
+  --color-ok:                  var(--ok);
+  --color-ok-soft:             var(--ok-soft);
+  --color-warn:                var(--warn);
+  --color-warn-soft:           var(--warn-soft);
+  --color-alarm:               var(--alarm);
+  --color-alarm-soft:          var(--alarm-soft);
+
+  --font-sans:    var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono:    var(--font-geist-mono), ui-monospace, monospace;
+  --font-display: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+}
+
+/* ------------------------------------------------------------------
+   Base.
+   ------------------------------------------------------------------ */
+
+* {
+  border-color: var(--rule);
+}
+
+html {
+  color-scheme: light;
+}
+
+body {
+  background: var(--page);
+  color: var(--ink);
+  font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  font-feature-settings: "ss01", "cv11";
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+}
+
+/* ------------------------------------------------------------------
+   Display type — Geist Sans, tightened for headline use. Single-font
+   SaaS system; the editorial serif (Newsreader) was retired when the
+   product moved to a denser dashboard direction.
+   ------------------------------------------------------------------ */
+
+.font-display {
+  font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  font-feature-settings: "ss01", "ss03", "cv11";
+  letter-spacing: -0.022em;
+  font-weight: 540;
+}
+
+/* ------------------------------------------------------------------
+   Scrollbar — quiet cream rail.
+   ------------------------------------------------------------------ */
+
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: var(--rule);
+  border: 3px solid var(--page);
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover { background: var(--rule-strong); }
+
+/* ------------------------------------------------------------------
+   Focus.
+   ------------------------------------------------------------------ */
+
+.focus-ring:focus-visible,
+:where(button, a, [role="button"]):focus-visible {
+  outline: 2px solid var(--navy);
+  outline-offset: 2px;
+  border-radius: var(--radius);
+}
+
+/* ------------------------------------------------------------------
+   Motion — exponential ease-out only. No bounce, no elastic.
+   Animated properties limited to opacity/transform.
+   ------------------------------------------------------------------ */
+
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(2px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes rise {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fade-in 220ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.animate-rise {
+  animation: rise 320ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-in,
+  .animate-rise {
+    animation: none;
+  }
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+/* ------------------------------------------------------------------
+   Hairline rule — used on tabular surfaces.
+   ------------------------------------------------------------------ */
+
+.rule-hairline {
+  background-image: linear-gradient(to bottom, var(--rule) 1px, transparent 1px);
+  background-repeat: repeat-x;
+  background-size: 100% 1px;
+  background-position: 0 0;
+}
+
+/* ------------------------------------------------------------------
+   FullCalendar theme overrides. v6 exposes --fc-* variables; we tint
+   them onto the navy-and-cream tokens so the calendar reads as part
+   of the same surface, not a third-party widget.
+   ------------------------------------------------------------------ */
+
+.cp-calendar {
+  --fc-page-bg-color:           var(--page);
+  --fc-neutral-bg-color:        var(--page-2);
+  --fc-neutral-text-color:      var(--ink-mute);
+  --fc-border-color:            var(--rule);
+  --fc-button-text-color:       var(--ink);
+  --fc-button-bg-color:         var(--page);
+  --fc-button-border-color:     var(--rule);
+  --fc-button-hover-bg-color:   var(--page-2);
+  --fc-button-hover-border-color: var(--rule-strong);
+  --fc-button-active-bg-color:  var(--navy-soft);
+  --fc-button-active-border-color: var(--navy);
+  --fc-event-bg-color:          var(--navy);
+  --fc-event-border-color:      var(--navy);
+  --fc-event-text-color:        var(--page);
+  --fc-event-selected-overlay-color: oklch(0% 0 0 / 0.05);
+  --fc-today-bg-color:          var(--accent-faint);
+  --fc-now-indicator-color:     var(--accent);
+  --fc-list-event-hover-bg-color: var(--page-2);
+  --fc-highlight-color:         var(--accent-faint);
+  --fc-non-business-color:      transparent;
+
+  font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  color: var(--ink);
+}
+
+.cp-calendar .fc {
+  --fc-small-font-size: 11px;
+}
+
+.cp-calendar .fc-scrollgrid,
+.cp-calendar .fc-scrollgrid td,
+.cp-calendar .fc-scrollgrid th {
+  border-color: var(--rule);
+}
+
+/* Day-of-week header row */
+.cp-calendar .fc-col-header-cell {
+  background: var(--page);
+  padding: 8px 0;
+}
+.cp-calendar .fc-col-header-cell-cushion {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  text-decoration: none;
+}
+
+/* Day numbers (month grid) */
+.cp-calendar .fc-daygrid-day-number {
+  font-size: 12px;
+  color: var(--ink-mute);
+  padding: 6px 8px;
+  text-decoration: none;
+  font-variant-numeric: tabular-nums;
+}
+.cp-calendar .fc-day-today .fc-daygrid-day-number {
+  color: var(--accent-ink);
+  font-weight: 600;
+}
+.cp-calendar .fc-day-other .fc-daygrid-day-number {
+  color: var(--ink-faint);
+  opacity: 0.55;
+}
+
+/* Time-grid axis */
+.cp-calendar .fc-timegrid-axis-cushion,
+.cp-calendar .fc-timegrid-slot-label-cushion {
+  font-size: 11px;
+  color: var(--ink-faint);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Events (resting state, priority + kind tinted) */
+.cp-calendar .cp-evt {
+  border: 1px solid transparent;
+  border-radius: 4px;
+  padding: 1px 6px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+}
+.cp-calendar .cp-evt .fc-event-time,
+.cp-calendar .cp-evt .fc-event-title {
+  font-weight: 500;
+}
+
+/* Priority sets the color role. Hearings inherit; filings override bg. */
+.cp-calendar .cp-evt-high   { background: var(--alarm-soft); color: var(--alarm); }
+.cp-calendar .cp-evt-medium { background: var(--warn-soft);  color: var(--warn);  }
+.cp-calendar .cp-evt-low    { background: var(--page-3);     color: var(--ink);   }
+
+/* Filing variant: outlined card on page, priority colour stays on text/border. */
+.cp-calendar .cp-evt-filing {
+  background: var(--page);
+  border-color: currentColor;
+}
+.cp-calendar .cp-evt-filing.cp-evt-low {
+  border-color: var(--rule-strong);
+  color: var(--ink-mute);
+}
+
+/* "Opened" fallback: dashed outline, muted. Used when the case has no
+   filing or hearing date so it still appears somewhere on the grid. */
+.cp-calendar .cp-evt-opened {
+  background: var(--page);
+  border-style: dashed;
+  border-color: var(--rule-strong);
+  color: var(--ink-mute);
+}
+
+/* Subtle kind label tucked into list view rows. */
+.cp-calendar .cp-evt-filing .fc-event-title::before {
+  content: "Filing · ";
+  color: var(--ink-faint);
+  font-weight: 400;
+}
+.cp-calendar .cp-evt-hearing .fc-event-title::before {
+  content: "Hearing · ";
+  color: var(--ink-faint);
+  font-weight: 400;
+}
+.cp-calendar .cp-evt-opened .fc-event-title::before {
+  content: "Opened · ";
+  color: var(--ink-faint);
+  font-weight: 400;
+}
+
+.cp-calendar .cp-evt:hover {
+  filter: brightness(0.97);
+}
+
+/* "more events" affordance */
+.cp-calendar .fc-daygrid-more-link {
+  font-size: 11px;
+  color: var(--ink-faint);
+  font-weight: 500;
+}
+.cp-calendar .fc-daygrid-more-link:hover {
+  color: var(--accent-ink);
+}
+
+/* Time-grid event tweaks (week / day views) */
+.cp-calendar .fc-timegrid-event,
+.cp-calendar .fc-timegrid-event .fc-event-main {
+  border-radius: 4px;
+}
+
+/* List view */
+.cp-calendar .fc-list {
+  border-color: var(--rule);
+  border-radius: 6px;
+  overflow: hidden;
+}
+.cp-calendar .fc-list-day-cushion {
+  background: var(--page-2);
+  padding: 8px 12px;
+}
+.cp-calendar .fc-list-day-text,
+.cp-calendar .fc-list-day-side-text {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+  text-decoration: none;
+}
+.cp-calendar .fc-list-event-time {
+  font-size: 12px;
+  color: var(--ink-faint);
+  font-variant-numeric: tabular-nums;
+}
+.cp-calendar .fc-list-event-title {
+  font-size: 13px;
+  color: var(--ink);
+}
+.cp-calendar .fc-list-event-dot {
+  border-color: currentColor;
+}
+.cp-calendar .fc-list-empty {
+  background: var(--page);
+  color: var(--ink-faint);
+  padding: 32px;
+}
+
+/* Legend dots */
+.cp-dot-high   { background: var(--alarm); }
+.cp-dot-medium { background: var(--warn); }
+.cp-dot-low    { background: var(--rule-strong); }

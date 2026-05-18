@@ -1,0 +1,185 @@
+version: "6.0.0"
+project_name: "CasePilot"
+project_level: 2
+current_sprint: 1
+sprint_plan_path: "docs/sprint-plan-casepilot-2026-03-29.md"
+
+sprints:
+  - sprint_number: 1
+    start_date: "2026-03-30"
+    end_date: "2026-04-05"
+    capacity_points: 15
+    committed_points: 14
+    completed_points: 14
+    status: "in_progress"
+    goal: "Set up project infrastructure, complete authentication flow, and establish modern design foundation"
+    stories:
+      - story_id: "STORY-001"
+        title: "Project Setup & Infrastructure"
+        points: 5
+        status: "completed"
+      - story_id: "STORY-002"
+        title: "Login Page Enhancement"
+        points: 3
+        status: "completed"
+      - story_id: "STORY-003"
+        title: "Registration & Firm Setup"
+        points: 3
+        status: "completed"
+      - story_id: "STORY-025"
+        title: "Sidebar & Navigation Enhancement"
+        points: 3
+        status: "completed"
+
+  - sprint_number: 2
+    start_date: "2026-04-06"
+    end_date: "2026-04-12"
+    capacity_points: 15
+    committed_points: 16
+    completed_points: 14
+    status: "in_progress"
+    goal: "Deliver complete case management — create, view, list, filter, search, and edit cases"
+    stories:
+      - story_id: "STORY-004"
+        title: "Auth State & Route Protection"
+        points: 3
+        status: "completed"
+      - story_id: "STORY-006"
+        title: "Case Data Model & Mock Data"
+        points: 3
+        status: "completed"
+      - story_id: "STORY-007"
+        title: "Cases List Page"
+        points: 5
+        status: "completed"
+      - story_id: "STORY-009"
+        title: "Create & Edit Case"
+        points: 3
+        status: "completed"
+      - story_id: "STORY-026"
+        title: "Header & Notifications"
+        points: 2
+        status: "completed"
+
+  - sprint_number: 3
+    start_date: "2026-04-13"
+    end_date: "2026-04-19"
+    capacity_points: 15
+    committed_points: 15
+    completed_points: 0
+    status: "not_started"
+    goal: "Complete case detail page with documents tab, upload, preview, and download"
+    stories:
+      - story_id: "STORY-008"
+        title: "Case Detail Page"
+        points: 5
+        status: "not_started"
+      - story_id: "STORY-010"
+        title: "Case Search"
+        points: 2
+        status: "not_started"
+      - story_id: "STORY-012"
+        title: "Document Upload & Listing"
+        points: 5
+        status: "not_started"
+      - story_id: "STORY-027"
+        title: "Toast Notifications & Loading States"
+        points: 3
+        status: "not_started"
+
+  - sprint_number: 4
+    start_date: "2026-04-20"
+    end_date: "2026-04-26"
+    capacity_points: 15
+    committed_points: 16
+    completed_points: 0
+    status: "not_started"
+    goal: "Deliver AI document analysis, calendar with deadlines, and team collaboration"
+    stories:
+      - story_id: "STORY-013"
+        title: "Document Preview & Download"
+        points: 5
+        status: "not_started"
+      - story_id: "STORY-014"
+        title: "AI Document Analysis UI"
+        points: 5
+        status: "not_started"
+      - story_id: "STORY-016"
+        title: "Deadline Management"
+        points: 3
+        status: "not_started"
+      - story_id: "STORY-019"
+        title: "Team Management Page"
+        points: 3
+        status: "not_started"
+
+  - sprint_number: 5
+    start_date: "2026-04-27"
+    end_date: "2026-05-03"
+    capacity_points: 15
+    committed_points: 15
+    completed_points: 0
+    status: "not_started"
+    goal: "Complete dashboard, global search, and calendar view"
+    stories:
+      - story_id: "STORY-017"
+        title: "Calendar View"
+        points: 5
+        status: "not_started"
+      - story_id: "STORY-022"
+        title: "Overview Dashboard"
+        points: 5
+        status: "not_started"
+      - story_id: "STORY-023"
+        title: "Global Search (Cmd+K)"
+        points: 5
+        status: "not_started"
+
+overflow:
+  stories:
+    - story_id: "STORY-005"
+      title: "Profile Management"
+      points: 2
+      status: "not_started"
+    - story_id: "STORY-011"
+      title: "Case Notes Timeline"
+      points: 3
+      status: "not_started"
+    - story_id: "STORY-015"
+      title: "Entity Recognition & Confidence"
+      points: 3
+      status: "not_started"
+    - story_id: "STORY-018"
+      title: "Deadline Reminders & Badges"
+      points: 2
+      status: "not_started"
+    - story_id: "STORY-020"
+      title: "Case Assignment"
+      points: 3
+      status: "not_started"
+    - story_id: "STORY-021"
+      title: "Activity Log"
+      points: 3
+      status: "not_started"
+    - story_id: "STORY-024"
+      title: "Quick Actions"
+      points: 3
+      status: "not_started"
+    - story_id: "STORY-028"
+      title: "Final Polish & Responsive Design"
+      points: 5
+      status: "not_started"
+
+velocity:
+  sprint_1: null
+  sprint_2: null
+  sprint_3: null
+  sprint_4: null
+  sprint_5: null
+  rolling_average: null
+
+team:
+  size: 1
+  sprint_length_weeks: 1
+  hours_per_day: 6
+  capacity_per_sprint: 15
