@@ -68,7 +68,9 @@ export function CaseForm({ initialCase, forceTeamId, onCancel }: CaseFormProps) 
       return;
     }
 
-    const sharedFields = {
+    // Normalize the form into the wire shape once; reused below for both
+    // the create payload and the change-diff used for updates.
+    const formFields = {
       title,
       caseNumber: caseNumber.trim() || undefined,
       description,
@@ -77,7 +79,9 @@ export function CaseForm({ initialCase, forceTeamId, onCancel }: CaseFormProps) 
       priority,
       courtName: courtName.trim() || undefined,
       filingDate: filingDate || undefined,
-      nextHearingDate: nextHearingDate ? new Date(nextHearingDate).toISOString() : undefined,
+      nextHearingDate: nextHearingDate
+        ? new Date(nextHearingDate).toISOString()
+        : undefined,
       clientName,
       clientEmail: clientEmail || undefined,
       clientPhone: clientPhone || undefined,
@@ -87,7 +91,13 @@ export function CaseForm({ initialCase, forceTeamId, onCancel }: CaseFormProps) 
     setIsSubmitting(true);
     try {
       if (isEditing) {
-        await updateCase(initialCase.id, sharedFields);
+        // PATCH only what changed. Sending the full body re-validates fields
+        // the user never touched and trips server-side rules (e.g. unique
+        // case_number) on no-op edits.
+        const changes = diffCaseFields(initialCase, formFields);
+        if (Object.keys(changes).length > 0) {
+          await updateCase(initialCase.id, changes);
+        }
         router.push(`/dashboard/cases/${initialCase.id}`);
       } else {
         // Resolve the team association in priority order:
@@ -96,7 +106,7 @@ export function CaseForm({ initialCase, forceTeamId, onCancel }: CaseFormProps) 
         //   3. unset — case lives outside a team
         const teamId = forceTeamId ?? firm?.id;
         const newCase = await createCase({
-          ...sharedFields,
+          ...formFields,
           assignedTo: user ? [user.id] : [],
           ...(teamId ? { firmId: teamId } : {}),
           createdBy: user?.id ?? "",
@@ -239,6 +249,92 @@ export function CaseForm({ initialCase, forceTeamId, onCancel }: CaseFormProps) 
       </div>
     </form>
   );
+}
+
+/**
+ * Compute the field-level diff between the loaded case and the submitted
+ * form values. Returns only the keys that actually changed, so the PATCH
+ * body stays small and we don't re-trigger server-side validation on
+ * untouched fields.
+ *
+ * Date fields are normalized through the same input formatters the form
+ * uses on mount — that way a freshly-loaded form has zero diff, even
+ * though the wire format ("2026-05-28T23:11:00.000Z") differs from the
+ * datetime-local input value ("2026-05-28T23:11").
+ */
+type CaseFormFields = {
+  title: string;
+  caseNumber: string | undefined;
+  description: string;
+  caseType: CaseType;
+  status: CaseStatus;
+  priority: CasePriority;
+  courtName: string | undefined;
+  filingDate: string | undefined;
+  nextHearingDate: string | undefined;
+  clientName: string;
+  clientEmail: string | undefined;
+  clientPhone: string | undefined;
+  clientNationalNumber: string | undefined;
+};
+
+function diffCaseFields(initial: Case, current: CaseFormFields): Partial<Case> {
+  const changes: Partial<Case> = {};
+  const initialDescription = initial.description ?? "";
+  const initialFilingDate = toDateInputValue(initial.filingDate) || undefined;
+  const initialHearingLocal =
+    toDateTimeInputValue(initial.nextHearingDate) || undefined;
+  const currentHearingLocal = nextHearingDateLocal(current.nextHearingDate);
+
+  // Required fields — always present on both sides, so a value diff is enough.
+  if (current.title !== initial.title) changes.title = current.title;
+  if (current.description !== initialDescription)
+    changes.description = current.description;
+  if (current.caseType !== initial.caseType) changes.caseType = current.caseType;
+  if (current.status !== initial.status) changes.status = current.status;
+  if (current.priority !== initial.priority) changes.priority = current.priority;
+  if (current.clientName !== initial.clientName)
+    changes.clientName = current.clientName;
+
+  // Optional fields — only record a change when the user provided a new value.
+  // The wire contract has no way to clear an optional column (the case service
+  // strips `undefined` from PATCH bodies), so a "clear" by the user can't be
+  // honored — recording it as `undefined` would inflate Object.keys and trick
+  // the caller into making a no-op API request with an empty body.
+  setIfDefinedAndChanged(changes, "caseNumber", current.caseNumber, initial.caseNumber);
+  setIfDefinedAndChanged(changes, "courtName", current.courtName, initial.courtName);
+  setIfDefinedAndChanged(changes, "clientEmail", current.clientEmail, initial.clientEmail);
+  setIfDefinedAndChanged(changes, "clientPhone", current.clientPhone, initial.clientPhone);
+  setIfDefinedAndChanged(
+    changes,
+    "clientNationalNumber",
+    current.clientNationalNumber,
+    initial.clientNationalNumber
+  );
+  if (current.filingDate !== undefined && current.filingDate !== initialFilingDate) {
+    changes.filingDate = current.filingDate;
+  }
+  if (current.nextHearingDate !== undefined && currentHearingLocal !== initialHearingLocal) {
+    changes.nextHearingDate = current.nextHearingDate;
+  }
+
+  return changes;
+}
+
+function setIfDefinedAndChanged<K extends keyof Case>(
+  changes: Partial<Case>,
+  key: K,
+  current: Case[K] | undefined,
+  initial: Case[K] | undefined
+) {
+  if (current === undefined) return;
+  if (current === (initial ?? undefined)) return;
+  changes[key] = current as Case[K];
+}
+
+/** ISO datetime → local datetime-local representation for comparison. */
+function nextHearingDateLocal(iso: string | undefined): string | undefined {
+  return iso ? toDateTimeInputValue(iso) || undefined : undefined;
 }
 
 function Section({

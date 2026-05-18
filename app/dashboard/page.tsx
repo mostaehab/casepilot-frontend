@@ -2,13 +2,47 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { ArrowUpRight, Plus, Calendar as CalIcon, FileText, Users } from "lucide-react";
+import { ArrowUpRight, Plus, Calendar as CalIcon, Users } from "lucide-react";
 import { useCaseStore } from "@/stores/case-store";
 import { useTeamStore } from "@/stores/team-store";
 import { caseService } from "@/services/case-service";
 import type { Case } from "@/types";
 
-const UPCOMING_LIMIT = 6;
+/**
+ * The docket pulls a generous window from the server; the time-window pills
+ * narrow it client-side, so switching pills is instant. 50 is the server's
+ * upper clamp on `/cases/upcoming?limit=N`.
+ */
+const UPCOMING_FETCH_LIMIT = 50;
+const DOCKET_DISPLAY_LIMIT = 6;
+
+type DashboardWindow = "today" | "week" | "all";
+
+const WINDOW_OPTIONS: { value: DashboardWindow; label: string }[] = [
+  { value: "today", label: "Today" },
+  { value: "week", label: "This week" },
+  { value: "all", label: "All open" },
+];
+
+function isHearingInWindow(
+  hearingIso: string | undefined,
+  window: DashboardWindow,
+  now: Date
+): boolean {
+  if (!hearingIso) return false;
+  const at = new Date(hearingIso).getTime();
+  if (Number.isNaN(at)) return false;
+  if (at < now.getTime()) return false;
+
+  if (window === "all") return true;
+
+  const startOfToday = new Date(now);
+  startOfToday.setHours(0, 0, 0, 0);
+  const days = window === "today" ? 1 : 7;
+  const horizon = new Date(startOfToday);
+  horizon.setDate(horizon.getDate() + days);
+  return at < horizon.getTime();
+}
 
 export default function DashboardPage() {
   const cases = useCaseStore((s) => s.cases);
@@ -18,6 +52,7 @@ export default function DashboardPage() {
 
   const [upcoming, setUpcoming] = useState<Case[]>([]);
   const [isUpcomingLoading, setIsUpcomingLoading] = useState(true);
+  const [windowFilter, setWindowFilter] = useState<DashboardWindow>("week");
 
   useEffect(() => {
     fetchCases();
@@ -28,7 +63,7 @@ export default function DashboardPage() {
     let cancelled = false;
     setIsUpcomingLoading(true);
     caseService
-      .getUpcomingCases(UPCOMING_LIMIT)
+      .getUpcomingCases(UPCOMING_FETCH_LIMIT)
       .then((rows) => {
         if (!cancelled) setUpcoming(rows);
       })
@@ -42,6 +77,13 @@ export default function DashboardPage() {
       cancelled = true;
     };
   }, []);
+
+  const visibleUpcoming = useMemo(() => {
+    const now = new Date();
+    return upcoming
+      .filter((c) => isHearingInWindow(c.nextHearingDate, windowFilter, now))
+      .slice(0, DOCKET_DISPLAY_LIMIT);
+  }, [upcoming, windowFilter]);
 
   const statusCounts = useMemo(() => {
     const byStatus: Record<string, number> = {
@@ -87,11 +129,15 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-7 animate-fade-in">
-      <Header />
+      <Header window={windowFilter} onChange={setWindowFilter} />
       <Stats stats={stats} />
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
-        <Docket upcoming={upcoming} isLoading={isUpcomingLoading} />
+        <Docket
+          upcoming={visibleUpcoming}
+          window={windowFilter}
+          isLoading={isUpcomingLoading}
+        />
         <SidePanel
           statusCounts={statusCounts}
           priorityCounts={priorityCounts}
@@ -102,7 +148,13 @@ export default function DashboardPage() {
   );
 }
 
-function Header() {
+function Header({
+  window: active,
+  onChange,
+}: {
+  window: DashboardWindow;
+  onChange: (w: DashboardWindow) => void;
+}) {
   const today = new Date().toLocaleDateString("en-US", {
     weekday: "long",
     month: "long",
@@ -118,20 +170,30 @@ function Header() {
           What&rsquo;s on the desk today.
         </h1>
       </div>
-      <div className="flex items-center gap-1 rounded-md border border-rule bg-page p-0.5 text-[12px]">
-        {["Today", "This week", "All open"].map((label, i) => (
-          <button
-            key={label}
-            type="button"
-            className={
-              i === 1
-                ? "rounded-[5px] bg-navy-soft px-2.5 py-1 font-medium text-navy"
-                : "rounded-[5px] px-2.5 py-1 text-ink-mute transition-colors hover:text-ink"
-            }
-          >
-            {label}
-          </button>
-        ))}
+      <div
+        role="tablist"
+        aria-label="Time window"
+        className="flex items-center gap-1 rounded-md border border-rule bg-page p-0.5 text-[12px]"
+      >
+        {WINDOW_OPTIONS.map((opt) => {
+          const isActive = opt.value === active;
+          return (
+            <button
+              key={opt.value}
+              type="button"
+              role="tab"
+              aria-selected={isActive}
+              onClick={() => onChange(opt.value)}
+              className={
+                isActive
+                  ? "rounded-[5px] bg-navy-soft px-2.5 py-1 font-medium text-navy"
+                  : "rounded-[5px] px-2.5 py-1 text-ink-mute transition-colors hover:text-ink"
+              }
+            >
+              {opt.label}
+            </button>
+          );
+        })}
       </div>
     </div>
   );
@@ -156,22 +218,26 @@ function Stats({ stats }: { stats: { label: string; value: number }[] }) {
 
 function Docket({
   upcoming,
+  window,
   isLoading,
 }: {
   upcoming: Case[];
+  window: DashboardWindow;
   isLoading: boolean;
 }) {
+  const trailing =
+    window === "today"
+      ? `${upcoming.length} today`
+      : window === "week"
+        ? `${upcoming.length} this week`
+        : `Next ${upcoming.length || DOCKET_DISPLAY_LIMIT}`;
   return (
     <section className="lg:col-span-8">
-      <SectionHeader
-        kicker="Calendar"
-        title="Coming up"
-        trailing={`Next ${upcoming.length || UPCOMING_LIMIT}`}
-      />
+      <SectionHeader kicker="Calendar" title="Coming up" trailing={trailing} />
       {isLoading && upcoming.length === 0 ? (
         <DocketSkeleton />
       ) : upcoming.length === 0 ? (
-        <DocketEmpty />
+        <DocketEmpty window={window} />
       ) : (
         <ul className="mt-3 divide-y divide-rule border-y border-rule">
           {upcoming.map((c) => (
@@ -249,7 +315,13 @@ function DocketSkeleton() {
   );
 }
 
-function DocketEmpty() {
+function DocketEmpty({ window }: { window: DashboardWindow }) {
+  const copy =
+    window === "today"
+      ? "Nothing on the calendar for today."
+      : window === "week"
+        ? "Nothing scheduled this week."
+        : "No upcoming hearings. Add a next hearing date on a case to see it here.";
   return (
     <div className="mt-3 rounded-md border border-dashed border-rule bg-paper py-10 px-6 text-center">
       <CalIcon
@@ -257,8 +329,7 @@ function DocketEmpty() {
         strokeWidth={1.5}
       />
       <p className="mt-3 text-[13px] text-ink-mute max-w-[42ch] mx-auto">
-        No upcoming hearings. Add a next hearing date on a case to see it
-        here.
+        {copy}
       </p>
     </div>
   );
@@ -352,10 +423,9 @@ function DistributionPanel({
 
 function QuickActions() {
   const items = [
-    { href: "/dashboard/cases/new", icon: Plus,     label: "New case" },
-    { href: "/dashboard/calendar",  icon: CalIcon,  label: "Open calendar" },
-    { href: "/dashboard/documents", icon: FileText, label: "Documents" },
-    { href: "/dashboard/team",      icon: Users,    label: "Team" },
+    { href: "/dashboard/cases/new", icon: Plus,    label: "New case" },
+    { href: "/dashboard/calendar",  icon: CalIcon, label: "Open calendar" },
+    { href: "/dashboard/team",      icon: Users,   label: "Team" },
   ];
   return (
     <section>
