@@ -14,7 +14,7 @@ import {
 import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/stores/auth-store";
-import { authService } from "@/services/auth-service";
+import { signOut } from "@/lib/auth-helpers";
 
 interface NavItem {
   href: string;
@@ -49,12 +49,10 @@ const navSections: NavSection[] = [
 export function DashboardSidebar() {
   const pathname = usePathname();
   const router = useRouter();
-  const logout = useAuthStore((s) => s.logout);
   const firm = useAuthStore((s) => s.firm);
 
   async function handleLogout() {
-    await authService.logout();
-    logout();
+    await signOut();
     router.replace("/login");
   }
 

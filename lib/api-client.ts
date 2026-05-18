@@ -23,7 +23,13 @@
 
 import axios, { AxiosError, AxiosInstance, AxiosResponse } from "axios";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000/api";
+/**
+ * Always relative. The browser hits `/api/*` on the frontend origin, which
+ * `next.config.ts` rewrites to NEXT_PUBLIC_API_URL on the server. This keeps
+ * the better-auth session cookie same-origin so middleware can read it for
+ * route protection.
+ */
+const API_URL = "/api";
 
 class ApiError extends Error {
   status: number;
@@ -79,7 +85,6 @@ function logRequestDiagnostics(error: AxiosError<ApiErrorBody>): void {
   const setCookie = error.response?.headers?.["set-cookie"];
   const cookiesVisible = document.cookie || "(no cookies visible to JS)";
 
-  /* eslint-disable no-console */
   console.groupCollapsed(
     `%c[API ${status}] %c${method} ${url}`,
     "color:#dc2626;font-weight:bold",
@@ -110,7 +115,6 @@ function logRequestDiagnostics(error: AxiosError<ApiErrorBody>): void {
     );
   }
   console.groupEnd();
-  /* eslint-enable no-console */
 }
 
 /* ------------------------------------------------------------------

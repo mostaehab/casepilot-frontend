@@ -27,6 +27,7 @@ export function LoginForm() {
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const justRegistered = search.get("registered") === "1";
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -97,6 +98,14 @@ export function LoginForm() {
             </Link>
           </div>
         </div>
+
+        {justRegistered && !error && (
+          <div className="rounded-md border border-rule bg-paper-2 px-3 py-2">
+            <p className="text-[12px] text-ink-mute">
+              Account created. Sign in to continue.
+            </p>
+          </div>
+        )}
 
         {error && (
           <div

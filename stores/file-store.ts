@@ -10,12 +10,20 @@ interface FileState {
   fetchFiles: (caseId: string) => Promise<void>;
   uploadFile: (caseId: string, file: File) => Promise<void>;
   deleteFile: (caseId: string, fileId: string) => Promise<void>;
+  /** Drop all in-memory file state. Called on sign-out. */
+  reset: () => void;
 }
 
-export const useFileStore = create<FileState>()((set) => ({
-  files: [],
+const initialFileState = {
+  files: [] as CaseFile[],
   isLoading: false,
-  error: null,
+  error: null as string | null,
+};
+
+export const useFileStore = create<FileState>()((set) => ({
+  ...initialFileState,
+
+  reset: () => set(initialFileState),
 
   fetchFiles: async (caseId) => {
     set({ isLoading: true, error: null });

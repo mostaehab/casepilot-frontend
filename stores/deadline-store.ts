@@ -27,13 +27,21 @@ interface DeadlineState {
   deleteDeadline: (caseId: string, eventId: string) => Promise<void>;
   getUpcoming: (days?: number) => Deadline[];
   getOverdue: () => Deadline[];
+  /** Drop all in-memory deadline state. Called on sign-out. */
+  reset: () => void;
 }
 
-export const useDeadlineStore = create<DeadlineState>()((set, get) => ({
-  deadlines: [],
-  upcoming: [],
+const initialDeadlineState = {
+  deadlines: [] as Deadline[],
+  upcoming: [] as UpcomingDeadline[],
   isLoading: false,
-  error: null,
+  error: null as string | null,
+};
+
+export const useDeadlineStore = create<DeadlineState>()((set, get) => ({
+  ...initialDeadlineState,
+
+  reset: () => set(initialDeadlineState),
 
   fetchDeadlines: async (caseId) => {
     set({ isLoading: true, error: null });

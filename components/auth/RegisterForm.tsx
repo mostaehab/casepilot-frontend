@@ -7,22 +7,12 @@ import { Loader2 } from "lucide-react";
 import { ApiError } from "@/lib/api-client";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
-import { useAuthStore } from "@/stores/auth-store";
 import { authService } from "@/services/auth-service";
-import { teamService } from "@/services/team-service";
-
-/** Only same-origin relative paths are allowed as a post-auth redirect. */
-function safeNext(raw: string | null): string {
-  if (!raw) return "/dashboard";
-  if (!raw.startsWith("/") || raw.startsWith("//")) return "/dashboard";
-  return raw;
-}
+import { clearClientCache } from "@/lib/auth-helpers";
 
 export function RegisterForm() {
   const router = useRouter();
   const search = useSearchParams();
-  const setUser = useAuthStore((s) => s.setUser);
-  const setFirm = useAuthStore((s) => s.setFirm);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -47,22 +37,22 @@ export function RegisterForm() {
 
     setIsLoading(true);
     try {
-      const { user } = await authService.register({
+      await authService.register({
         name,
         email,
         password,
         barLicenseNumber,
         nationalNumber,
       });
-      setUser(user, null);
-      router.push(safeNext(search.get("next")));
-      // New accounts may not have a team yet. Try once; ignore 404s.
-      teamService
-        .getMyTeam()
-        .then((firm) => {
-          if (firm) setFirm(firm);
-        })
-        .catch(() => {});
+      // The register endpoint sets a session cookie. We don't want the user
+      // signed in automatically — clear the cookie and any stale client-side
+      // cache from a previous session, then send them to /login.
+      await authService.logout();
+      clearClientCache();
+      const next = search.get("next");
+      const params = new URLSearchParams({ registered: "1" });
+      if (next) params.set("next", next);
+      router.push(`/login?${params.toString()}`);
     } catch (err) {
       const message =
         err instanceof ApiError ? err.message : "Registration failed. Please try again.";

@@ -27,16 +27,24 @@ interface TeamState {
   /** Removes both active members and pending invitations — same endpoint. */
   removeMember: (teamId: string, userId: string) => Promise<void>;
   clearCurrentTeam: () => void;
+  /** Drop all in-memory team state. Called on sign-out. */
+  reset: () => void;
 }
 
-export const useTeamStore = create<TeamState>()((set) => ({
-  teams: [],
+const initialTeamState = {
+  teams: [] as Firm[],
   isLoadingTeams: false,
-  currentTeam: null,
-  members: [],
-  cases: [],
+  currentTeam: null as Firm | null,
+  members: [] as TeamMember[],
+  cases: [] as Case[],
   isLoading: false,
-  error: null,
+  error: null as string | null,
+};
+
+export const useTeamStore = create<TeamState>()((set) => ({
+  ...initialTeamState,
+
+  reset: () => set(initialTeamState),
 
   fetchMyTeams: async () => {
     set({ isLoadingTeams: true, error: null });

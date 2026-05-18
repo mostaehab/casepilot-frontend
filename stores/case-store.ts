@@ -13,13 +13,21 @@ interface CaseState {
   createCase: (data: Omit<Case, "id" | "createdAt" | "updatedAt">) => Promise<Case>;
   updateCase: (id: string, data: Partial<Case>) => Promise<void>;
   archiveCase: (id: string) => Promise<void>;
+  /** Drop all in-memory case state. Called on sign-out. */
+  reset: () => void;
 }
 
-export const useCaseStore = create<CaseState>()((set) => ({
-  cases: [],
-  selectedCase: null,
+const initialCaseState = {
+  cases: [] as Case[],
+  selectedCase: null as Case | null,
   isLoading: false,
-  error: null,
+  error: null as string | null,
+};
+
+export const useCaseStore = create<CaseState>()((set) => ({
+  ...initialCaseState,
+
+  reset: () => set(initialCaseState),
 
   fetchCases: async () => {
     set({ isLoading: true, error: null });
