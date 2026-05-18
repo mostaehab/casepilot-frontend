@@ -3,13 +3,14 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Loader2 } from "lucide-react";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { ApiError } from "@/lib/api-client";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { useAuthStore } from "@/stores/auth-store";
 import { authService } from "@/services/auth-service";
 import { teamService } from "@/services/team-service";
+import { cn } from "@/lib/utils";
 
 /** Only same-origin relative paths are allowed as a post-auth redirect. */
 function safeNext(raw: string | null): string {
@@ -25,6 +26,7 @@ export function LoginForm() {
   const setFirm = useAuthStore((s) => s.setFirm);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const justRegistered = search.get("registered") === "1";
@@ -80,15 +82,43 @@ export function LoginForm() {
           autoComplete="email"
         />
         <div className="space-y-1.5">
-          <Input
-            label="Password"
-            type="password"
-            placeholder="Your password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            autoComplete="current-password"
-          />
+          <label
+            htmlFor="password"
+            className="block text-[12px] font-medium tracking-[0.01em] text-ink"
+          >
+            Password
+          </label>
+          <div className="relative">
+            <input
+              id="password"
+              type={showPassword ? "text" : "password"}
+              placeholder="Your password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              autoComplete="current-password"
+              className={cn(
+                "block h-10 w-full rounded-md border border-rule bg-page pl-3 pr-10 text-sm text-ink",
+                "placeholder:text-ink-faint",
+                "transition-[border-color,box-shadow] duration-150",
+                "focus:outline-none focus:border-navy focus:shadow-[0_0_0_3px_var(--accent-soft)]"
+              )}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword((s) => !s)}
+              aria-label={showPassword ? "Hide password" : "Show password"}
+              aria-pressed={showPassword}
+              tabIndex={-1}
+              className="absolute right-1 top-1/2 -translate-y-1/2 flex h-8 w-8 items-center justify-center rounded text-ink-faint transition-colors hover:text-ink focus:outline-none focus-visible:outline-2 focus-visible:outline-navy focus-visible:outline-offset-1"
+            >
+              {showPassword ? (
+                <EyeOff className="h-4 w-4" strokeWidth={1.75} />
+              ) : (
+                <Eye className="h-4 w-4" strokeWidth={1.75} />
+              )}
+            </button>
+          </div>
           <div className="flex justify-end">
             <Link
               href="/forgot-password"
